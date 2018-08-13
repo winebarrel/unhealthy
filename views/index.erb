@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+	<title>AWS Personal Health Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  </head>
+  <body>
+		<div class="container">
+			<nav class="navbar navbar-expand-lg navbar-light bg-light">
+				<a class="navbar-brand" href="/">AWS Personal Health Dashboard</a>
+        <div class="collapse navbar-collapse" id="navbarText">
+          <ul class="navbar-nav mr-auto">
+          </ul>
+          <span class="navbar-text small">
+            Last update: <%= Time.now %>
+          </span>
+        </div>
+      </nav>
+			<div>
+        <table class="table" style="font-size: small;">
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>Service</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Start time</th>
+              <th>End time</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% event_detail_by_arn.sort_by {|_, e| e.event.start_time }.reverse.each_with_index do |(arn, event_detail), i| %>
+              <% event = event_detail.event %>
+              <% entities = entities_by_event_arn.fetch(arn) %>
+              <% tr_class = event.start_time < Time.now ? 'bg-light' : '' %>
+              <tr class="<%= tr_class %>">
+                <td><%= h event.region %></td>
+                <td><%= aws_service_link(event.region, event.service) %></td>
+                <td><%= h event.event_type_category %></td>
+                <td><%= h event.status_code %></td>
+                <td><%= event.start_time.strftime('%b %d %H:%M %Z') %></td>
+                <td><%= event.end_time ? event.end_time.strftime('%b %d %H:%M %Z') : '-' %></td>
+                <td>
+                  <a href="#" onclick="$('#detail-<%= i %>').toggle(); return false;">
+                    Show
+                  </a>
+                </td>
+              </tr>
+              <tr id="detail-<%= i %>" class="<%= tr_class %>" style="display: none;">
+                <td colspan="7">
+                  <%= auto_link(simple_format(event_detail.event_description.latest_description)) %>
+                  <ul>
+                    <% if event.region != 'global' && event.service == 'EC2' %>
+                      <% ec2 = ec2_by_region.fetch(event.region) %>
+                      <% entities.each do |entity| %>
+                        <% instance = ec2.instance(entity.entity_value) %>
+                        <% if instance.exists? %>
+                          <% name_tag = instance.tags.find {|t| t.key == 'Name' } %>
+                          <li><%= h name_tag ? name_tag.value : entity.entity_value %> (<%= instance_link(event.region, entity.entity_value) %>)</li>
+                        <% else %>
+                          <li><%= h entity.entity_value %> (not exists)</li>
+                        <% end %>
+                      <% end %>
+                    <% else %>
+                      <% entities.each do |entity| %>
+                        <li><%= h entity.entity_value %></li>
+                      <% end %>
+                    <% end %>
+                  </ul>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+			</div>
+		</div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  </body>
+</html>
