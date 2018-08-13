@@ -1,7 +1,7 @@
 Unhealthy
 ---------
 
-Unhealthy is AWS Personal Health Dashboard.
+Unhealthy is Custom AWS Personal Health Dashboard.
 
 ## Installation
 
