@@ -22,21 +22,28 @@
         <table class="table" style="font-size: small;">
           <thead>
             <tr>
+              <th></th>
               <th>Region</th>
               <th>Service</th>
               <th>Category</th>
               <th>Status</th>
-              <th>Period</th>
-              <th>Last updated</th>
+              <% if sort == :last_updated_time %>
+                <th><a href="/">Period</a></th>
+                <th><strong>Last updated</strong></th>
+              <% else %>
+                <th><strong>Period</strong></th>
+                <th><a href="/?sort=last_updated_time">Last updated</a></th>
+              <% end %>
               <th>Detail</th>
             </tr>
           </thead>
           <tbody>
-            <% event_detail_by_arn.sort_by {|_, e| e.event.start_time }.reverse.each_with_index do |(arn, event_detail), i| %>
+            <% event_detail_by_arn.sort_by {|_, e| e.event.send(sort) }.reverse.each_with_index do |(arn, event_detail), i| %>
               <% event = event_detail.event %>
               <% entities = entities_by_event_arn.fetch(arn) %>
               <% tr_class = event.start_time < Time.now ? 'bg-light' : '' %>
-              <tr class="<%= tr_class %>">
+              <tr id="<%= Digest::SHA1.hexdigest(arn) %>" class="<%= tr_class %>">
+                <td><a href="#<%= Digest::SHA1.hexdigest(arn) %>">#</a></td>
                 <td><%= h event.region %></td>
                 <td><%= aws_service_link(event.region, event.service) %></td>
                 <td><%= h event.event_type_category %></td>
@@ -54,7 +61,7 @@
                 </td>
               </tr>
               <tr id="detail-<%= i %>" class="<%= tr_class %>" style="display: none;">
-                <td colspan="7">
+                <td colspan="8">
                   <%= auto_link(simple_format(event_detail.event_description.latest_description)) %>
                   <ul>
                     <% if event.region != 'global' && event.service == 'EC2' %>
@@ -84,5 +91,9 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script>
+      var arn = location.href.match(/#.+$/);
+      if (arn) { $(arn + '+tr').toggle(); }
+    </script>
   </body>
 </html>

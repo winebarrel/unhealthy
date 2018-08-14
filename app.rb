@@ -4,6 +4,7 @@ require 'sinatra/reloader' if development?
 require 'aws-sdk-ec2'
 require 'aws-sdk-health'
 require 'action_view'
+require 'digest/sha1'
 
 helpers do
   include ActionView::Helpers::TextHelper
@@ -63,18 +64,24 @@ def fetch_health
     r
   }
 
-  erb :index, locals: {
-    event_detail_by_arn: event_detail_by_arn,
-    entities_by_event_arn: entities_by_event_arn,
-    ec2_by_region: ec2_by_region,
+  {
+    start_time: erb(:index, locals: {event_detail_by_arn: event_detail_by_arn, entities_by_event_arn: entities_by_event_arn, ec2_by_region: ec2_by_region, sort: :start_time}),
+    last_updated_time: erb(:index, locals: {event_detail_by_arn: event_detail_by_arn, entities_by_event_arn: entities_by_event_arn, ec2_by_region: ec2_by_region, sort: :last_updated_time}),
   }
 end
 
 get '/' do
+  sort = (params[:sort] || 'start_time').to_sym
+
   if settings.production?
     settings.mutex.synchronize do
       if settings.cache.nil?
-        settings.cache = erb :loading
+        loading_view = erb :loading
+
+        settings.cache = {
+          start_time: loading_view,
+          last_updated_time: loading_view,
+        }
 
         settings.loader = Thread.new do
           loop do
@@ -85,15 +92,21 @@ get '/' do
       end
     end
 
-    settings.cache
+    settings.cache.fetch(sort)
   else
-    fetch_health
+    fetch_health.fetch(sort)
   end
 end
 
 get '/update' do
   settings.mutex.synchronize do
-    settings.cache = erb :loading
+    loading_view = erb :loading
+
+    settings.cache = {
+      start_time: loading_view,
+      last_updated_time: loading_view,
+    }
+
     settings.loader.run
   end
 
