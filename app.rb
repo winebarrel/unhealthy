@@ -73,7 +73,7 @@ end
 get '/' do
   settings.mutex.synchronize do
     if settings.cache.nil?
-      settings.cache = 'Now Loading...'
+      settings.cache = erb :loading
 
       settings.loader = Thread.new do
         loop do
@@ -85,6 +85,15 @@ get '/' do
   end
 
   settings.cache
+end
+
+get '/update' do
+  settings.mutex.synchronize do
+    settings.cache = erb :loading
+    settings.loader.run
+  end
+
+  redirect '/'
 end
 
 get '/ping' do
