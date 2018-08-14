@@ -43,7 +43,7 @@
               <% entities = entities_by_event_arn.fetch(arn) %>
               <% tr_class = event.start_time < Time.now ? 'bg-light' : '' %>
               <tr id="<%= Digest::SHA1.hexdigest(arn) %>" class="<%= tr_class %>">
-                <td><a href="#<%= Digest::SHA1.hexdigest(arn) %>">#</a></td>
+                <td><a href="#" onclick="location.href='#<%= Digest::SHA1.hexdigest(arn) %>'; jump(); return false;">#</a></td>
                 <td><%= h event.region %></td>
                 <td><%= aws_service_link(event.region, event.service) %></td>
                 <td><%= h event.event_type_category %></td>
@@ -92,8 +92,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script>
-      var arn = location.href.match(/#.+$/);
-      if (arn) { $(arn + '+tr').show(); }
+      function jump() {
+        var arn = location.href.match(/#.+$/);
+        if (arn) { $(arn + '+tr').show(); }
+      }
+
+      jump();
     </script>
   </body>
 </html>
