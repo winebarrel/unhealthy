@@ -71,20 +71,24 @@ def fetch_health
 end
 
 get '/' do
-  settings.mutex.synchronize do
-    if settings.cache.nil?
-      settings.cache = erb :loading
+  if settings.production?
+    settings.mutex.synchronize do
+      if settings.cache.nil?
+        settings.cache = erb :loading
 
-      settings.loader = Thread.new do
-        loop do
-          settings.cache = fetch_health
-          sleep settings.production? ? settings.ttl : 3
+        settings.loader = Thread.new do
+          loop do
+            settings.cache = fetch_health
+            sleep settings.production? ? settings.ttl : 3
+          end
         end
       end
     end
-  end
 
-  settings.cache
+    settings.cache
+  else
+    fetch_health
+  end
 end
 
 get '/update' do

@@ -26,8 +26,8 @@
               <th>Service</th>
               <th>Category</th>
               <th>Status</th>
-              <th>Start time</th>
-              <th>End time</th>
+              <th>Period</th>
+              <th>Last updated</th>
               <th>Detail</th>
             </tr>
           </thead>
@@ -41,8 +41,12 @@
                 <td><%= aws_service_link(event.region, event.service) %></td>
                 <td><%= h event.event_type_category %></td>
                 <td><%= h event.status_code %></td>
-                <td><%= event.start_time.strftime('%b %d %H:%M %Z') %></td>
-                <td><%= event.end_time ? event.end_time.strftime('%b %d %H:%M %Z') : '-' %></td>
+                <td>
+                  <%= event.start_time.strftime('%b %d %H:%M') %>
+                  -
+                  <%= event.end_time ? event.end_time.strftime('%b %d %H:%M %Z') : '-' %>
+                </td>
+                <td><%= event.last_updated_time.strftime('%b %d %H:%M %Z') %></td>
                 <td>
                   <a href="#" onclick="$('#detail-<%= i %>').toggle(); return false;">
                     Show
