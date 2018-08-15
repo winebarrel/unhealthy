@@ -43,7 +43,7 @@
               <% entities = entities_by_event_arn.fetch(arn) %>
               <% tr_class = event.start_time < Time.now ? 'bg-light' : '' %>
               <tr id="<%= arn %>" class="<%= tr_class %>">
-                <td><a href="#" onclick="location.href='#<%= arn %>'; show_description(); return false;">#</a></td>
+                <td><a href="#<%= arn %>" onclick="location.href='#<%= arn %>'; show_description(); return false;">#</a></td>
                 <td><%= h event.region %></td>
                 <td><%= aws_service_link(event.region, event.service) %></td>
                 <td><%= h event.event_type_category %></td>
