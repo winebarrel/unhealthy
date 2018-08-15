@@ -4,7 +4,6 @@ require 'sinatra/reloader' if development?
 require 'aws-sdk-ec2'
 require 'aws-sdk-health'
 require 'action_view'
-require 'digest/sha1'
 
 helpers do
   include ActionView::Helpers::TextHelper
